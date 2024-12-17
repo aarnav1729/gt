@@ -1,21 +1,10 @@
-FROM node:18-bullseye
-
-# Install dependencies: poppler-utils (for pdftocairo), Tesseract and Chinese (Simplified) language pack
-RUN apt-get update && apt-get install -y \
-    poppler-utils \
-    tesseract-ocr \
-    tesseract-ocr-chi-sim \
-    && rm -rf /var/lib/apt/lists/*
-
-# Set the working directory
-WORKDIR /app
-
-# Copy package files and install dependencies
-COPY package*.json ./
-RUN npm install
-
-# Copy the rest of the application files
+FROM node:lts-alpine
+ENV NODE_ENV=production
+WORKDIR /usr/src/app
+COPY ["package.json", "package-lock.json*", "npm-shrinkwrap.json*", "./"]
+RUN npm install --production --silent && mv node_modules ../
 COPY . .
-
-# By default, run the script
-CMD ["node", "script.js"]
+EXPOSE 3000
+RUN chown -R node /usr/src/app
+USER node
+CMD ["npm", "start"]
